@@ -1,6 +1,7 @@
 <?php
-
 namespace App\Http\Controllers;
+
+use App\Models\MenuItem;
 
 class MenuController extends Controller
 {
@@ -90,6 +91,27 @@ class MenuController extends Controller
 
     public function getMenuItems()
     {
-        throw new \Exception('Implement task#3');
+        $items = MenuItem::all();
+
+        $grouped = [];
+        foreach ($items as $item) {
+            $grouped[$item->parent_id ?? 0][] = $item;
+        }
+
+        $buildTree = function ($parentId = 0) use (&$buildTree, $grouped) {
+            $result = [];
+
+            if (isset($grouped[$parentId])) {
+                foreach ($grouped[$parentId] as $item) {
+                    $itemArray             = $item->toArray();
+                    $itemArray['children'] = $buildTree($item->id);
+                    $result[]              = $itemArray;
+                }
+            }
+
+            return $result;
+        };
+
+        return $buildTree();
     }
 }
