@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Event;
@@ -98,7 +97,7 @@ class EventController extends Controller
 
     public function getEventsWithWorkshops()
     {
-        throw new \Exception('Implement task#1');
+        return Event::with('workshops')->get();
     }
 
     /* TODO: complete getFutureEventWithWorkshops so that it returns events with workshops, that have not yet started
@@ -176,6 +175,14 @@ class EventController extends Controller
 
     public function getFutureEventsWithWorkshops()
     {
-        throw new \Exception('Implement task#2');
+        $now = now()->format('Y-m-d H:i:s');
+
+        return Event::whereHas('workshops', function ($q) use ($now) {
+            $q->where('start', '>', $now);
+        })
+            ->with(['workshops' => function ($query) use ($now) {
+                $query->where('start', '>', $now);
+            }])
+            ->get();
     }
 }
