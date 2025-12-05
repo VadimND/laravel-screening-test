@@ -39,7 +39,59 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Implement task#4
+        Schema::create('movies', function ($table) {
+            $table->id();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->integer('duration_minutes');
+            $table->timestamps();
+        });
+
+        Schema::create('showrooms', function ($table) {
+            $table->id();
+            $table->string('name');
+            $table->integer('total_seats');
+            $table->timestamps();
+        });
+
+        Schema::create('seat_types', function ($table) {
+            $table->id();
+            $table->string('name');                      // regular, vip, couple, super_vip
+            $table->decimal('premium_percentage', 5, 2); // 0.00, 50.00, etc.
+            $table->timestamps();
+        });
+
+        Schema::create('seats', function ($table) {
+            $table->id();
+            $table->foreignId('showroom_id')->constrained()->onDelete('cascade');
+            $table->foreignId('seat_type_id')->constrained()->onDelete('cascade');
+            $table->string('row');
+            $table->integer('number');
+            $table->timestamps();
+            $table->unique(['showroom_id', 'row', 'number']);
+        });
+
+        Schema::create('shows', function ($table) {
+            $table->id();
+            $table->foreignId('movie_id')->constrained()->onDelete('cascade');
+            $table->foreignId('showroom_id')->constrained()->onDelete('cascade');
+            $table->datetime('start_time');
+            $table->datetime('end_time');
+            $table->decimal('base_price', 8, 2);
+            $table->timestamps();
+            $table->index(['start_time', 'showroom_id']);
+        });
+
+        Schema::create('bookings', function ($table) {
+            $table->id();
+            $table->foreignId('show_id')->constrained()->onDelete('cascade');
+            $table->foreignId('seat_id')->constrained()->onDelete('cascade');
+            $table->string('customer_email');
+            $table->string('booking_reference')->unique();
+            $table->decimal('final_price', 8, 2);
+            $table->timestamps();
+            $table->unique(['show_id', 'seat_id']);
+        });
     }
 
     /**
@@ -47,6 +99,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('bookings');
+        Schema::dropIfExists('shows');
+        Schema::dropIfExists('seats');
+        Schema::dropIfExists('seat_types');
+        Schema::dropIfExists('showrooms');
+        Schema::dropIfExists('movies');
     }
 };
